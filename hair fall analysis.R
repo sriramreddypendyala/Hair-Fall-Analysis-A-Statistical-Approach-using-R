@@ -1,0 +1,485 @@
+#installing packages   eg : ggplot2 , dplyr ,tidyr 
+install.packages("tidyverse")
+library(tidyverse) 
+list.files(path = "C:/Users/WELCOME/Downloads/hair_loss.csv")
+install.packages("psych") 
+library(psych)
+# Reading data set 
+data <- read.csv("C:/Users/WELCOME/Downloads/hair_loss.csv") 
+
+dim(data)
+
+# displaying the column names  
+variable_names <- names(data) 
+print(variable_names)
+
+# See the data types of variables(column) 
+str(data) 
+
+#coverting the blank spaces into NA 
+columns <- colnames(data) 
+
+for (column in columns) { 
+  data[[column]] <- ifelse(trimws(data[[column]]) == "", 
+                           NA, data[[column]]) 
+} 
+
+
+# Seeing missing values  
+colSums(is.na(data)) 
+
+# Create a bar plot of distribution of iron levels
+ggplot(data, aes(x = iron)) + 
+  geom_bar(fill = "steelblue") + 
+  labs(title = "grades of hairfall", 
+       x = "iron levels", y = "Iron distribution") 
+
+# Calculate the frequency count for each category 
+frequency <- table(data$hair_fall) 
+
+# Find the category with the highest count (mode) 
+mode <- frequency[which.max(frequency)] 
+# Print the mode 
+print(mode) 
+print(frequency)
+
+mean(data[data$hair_fall == 0, 'iron'])
+mean(data[data$hair_fall == 2, 'iron'])
+mean(data[data$hair_fall == 3, 'iron'])
+mean(data[data$hair_fall == 4, 'iron'])
+mean(data[data$hair_fall == 5, 'iron'])
+
+
+#histogram for stress_level whose hairfall level is 5 
+hist(data$stress_level[data$hair_fall==5],
+     col = "lightblue",
+     border = "black",
+     prob = TRUE,
+     xlab = "stress levels for hairfall level 5",
+     main = "GFG",
+     # Add fill color option
+     fill = "lightblue",
+     # Add line type option
+     lty = "dashed"	
+)
+
+lines(density(data$stress_level[data$hair_fall==5]),
+      lwd = 2,
+      col = "red"
+)
+lines(density(data$stress_level[data$hair_fall==0]),
+      lwd = 2,
+      col = "blue"
+)
+
+install.packages("outliers")
+library(outliers)
+
+outlier_tf=outlier(data$hair_fall,logical=TRUE)
+outlier_tf
+
+boxplot(data$liver_data)
+ggplot(data$hair_texture) +
+  aes(x = "", y =" ") +
+  geom_boxplot(fill = "steelblue") +
+  theme_minimal() 
+
+out <- boxplot.stats(data$total_protein)$out
+out_ind <- which(data$vitamin %in% c(out))
+out_ind
+
+describe(data[1:10])
+data
+#check for all the attributes and normalize them 
+data$total_protein <- (data$total_protein - 
+                    min(data$total_protein)) / 
+  (max(data$total_protein) - min(data$total_protein)) 
+data$total_keratine <- (data$total_keratine - 
+                        min(data$total_keratine)) / 
+  (max(data$total_keratine) - min(data$total_keratine)) 
+data$hair_texture <- (data$hair_texture - 
+                        min(data$hair_texture)) / 
+  (max(data$hair_texture) - min(data$hair_texture)) 
+
+
+
+data$vitamin <- (data$vitamin - 
+                        min(data$vitamin)) / 
+  (max(data$vitamin) - min(data$vitamin)) 
+data$manganese <- (data$manganese - 
+                        min(data$manganese)) / 
+  (max(data$manganese) - min(data$manganese)) 
+data$iron <- (data$iron - 
+                        min(data$iron)) / 
+  (max(data$iron) - min(data$iron)) 
+data$calcium <- (data$calcium - 
+                        min(data$calcium)) / 
+  (max(data$calcium) - min(data$calcium)) 
+data$body_water_content <- (data$body_water_content - 
+                        min(data$body_water_content)) / 
+  (max(data$body_water_content) - min(data$body_water_content)) 
+
+data$stress_level <- (data$stress_level - 
+                       min(data$stress_level)) / 
+  (max(data$stress_level) - min(data$stress_level))
+data$liver_data <- (data$liver_data - 
+                       min(data$liver_data)) / 
+  (max(data$liver_data) - min(data$liver_data))
+
+head(data)
+
+
+# Define the columns for which you want to calculate the bounds 
+columns <- c("total_protein", "total_keratine", "hair_texture", "vitamin", "manganese", "iron", "calcium", "body_water_content", "stress_level", "liver_data") 
+
+
+# Define the threshold for outliers 
+outlier_threshold <- 1.5 
+
+# Create empty vectors to store the lower and upper bounds 
+lower_bounds <- c() 
+upper_bounds <- c() 
+
+# Calculate the IQR and bounds for each column using a for loop 
+for (column in columns) { 
+  column_iqr <- IQR(data[[column]]) 
+  column_lower_bound <- quantile(data[[column]], 0.25) - outlier_threshold * column_iqr 
+  column_upper_bound <- quantile(data[[column]], 0.75) + outlier_threshold * column_iqr 
+  
+  lower_bounds <- c(lower_bounds, column_lower_bound) 
+  upper_bounds <- c(upper_bounds, column_upper_bound) 
+} 
+
+# remove outliers for each column using a for loop 
+for (i in 1:length(columns)) { 
+  column <- columns[i] 
+  lower_bound <- lower_bounds[i] 
+  upper_bound <- upper_bounds[i] 
+  
+  data <- data[data[[column]] >= lower_bound & data[[column]] <= upper_bound, ] 
+} 
+
+# Create a combined box plot 
+boxplot_data <- data[, columns, drop = FALSE] 
+boxplot(boxplot_data, names = columns, main = "Box Plot of Numerical Columns")
+
+
+
+data$hair_fall.cat <- as.factor(ifelse(data$hair_fall==0, 'Very Low', 
+                                    ifelse(data$hair_fall==1, 'Low', 
+                                           ifelse(data$hair_fall==2, 'Moderate', 
+                                                  ifelse(data$hair_fall==3, 'High',
+                                                         ifelse(data$hair_fall==4, 'Very High',
+                                                                ifelse(data$hair_fall==5, 'Extreme',"no"))))))) 
+
+# Set the seed for reproducibility
+set.seed(845)
+
+# Sample 1000 rows from your data
+sampled_data <- data[sample(nrow(data), 200), ]
+
+# Subset data for haifall level 0 and 5
+subset_data <- sampled_data[sampled_data$hair_fall %in% c(0, 5), ]
+
+# Create a double density plot
+#-------
+install.packages("gridExtra")
+library(gridExtra)
+
+# Function to generate double density plots for multiple columns
+generate_density_plots <- function(data, columns) {
+  plots <- lapply(columns, function(col) {
+    ggplot(data, aes(x = !!as.name(col), fill = factor(hair_fall))) +
+      geom_density(alpha = 0.5) +
+      scale_fill_manual(values = c("0" = "blue", "5" = "red")) +
+      labs(title = paste("Double Density Plot of", col),
+           x = col, y = "Density",
+           fill = "Hairfall Level")
+  })
+  return(plots)
+}
+
+# Example usage
+columns <- c("total_protein", "total_keratine", "hair_texture", "vitamin")
+columns1 <- c("manganese","iron", "calcium", "body_water_content", "stress_level", "liver_data")
+
+density_plots <- generate_density_plots(subset_data, columns)
+density_plots1 <- generate_density_plots(subset_data, columns1)
+# Arrange plots side by side
+grid.arrange(grobs = density_plots, ncol = 2)
+grid.arrange(grobs = density_plots1, ncol = 2)
+#------------
+
+data
+standardize = function(x){
+  z <- (x-mean(x))/sd(x)
+  return(z)
+}
+
+data[1:10] <-
+  apply(data[1:10],2,standardize)
+
+data
+
+cor(sampled_data[1:10])
+
+install.packages("corrplot")
+library("corrplot")
+corrplot(cor(sampled_data[1:10]),method="circle")
+
+install.packages("ggcorrplot")
+library("ggcorrplot")
+ggcorrplot(cor(sampled_data[1:10]))
+
+install.packages("ggstatsplot")
+library(ggstatsplot)
+ggscatterstats(
+  data = sampled_data,
+  x=calcium,
+  y=manganese,
+  type="parametric"
+)
+ggscatterstats(
+  data = sampled_data,
+  x=calcium,
+  y=total_keratine,
+  type="parametric"
+)
+
+
+# Load required libraries
+install.packages('caret')
+install.packages('MASS')
+library(caret)
+library(MASS)
+
+print(head(data))
+data <- data[, !names(data) %in% c("hair_fall.cat")]
+#----------- multinomial linear regression
+# Load required library for multinomial logistic regression
+library(nnet)
+
+# Assuming 'data' is your dataset
+# Assuming 'hair_fall' is your outcome variable and the rest are predictors
+
+# Convert 'hair_fall' to a factor variable since it's categorical
+data$hair_fall <- as.factor(data$hair_fall)
+
+# Split the data into training and testing sets (e.g., 80% train, 20% test)
+set.seed(123) # for reproducibility
+sampled_data <- data[sample(nrow(data), 1000), ]
+train_index <- sample(1:nrow(sampled_data), 0.8 * nrow(sampled_data))
+train_data <- sampled_data[train_index, ]
+test_data <- sampled_data[-train_index, ]
+
+# Fit multinomial logistic regression model
+multinom_model <- multinom(hair_fall ~ ., data = train_data)
+
+# Predict on test data
+predicted_classes <- predict(multinom_model, newdata = test_data)
+
+# Evaluate the model
+conf_matrix <- table(test_data$hair_fall, predicted_classes)
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+precision <- diag(conf_matrix) / rowSums(conf_matrix)
+recall <- diag(conf_matrix) / colSums(conf_matrix)
+f1_score <- 2 * precision * recall / (precision + recall)
+
+# Print evaluation metrics
+cat("Confusion Matrix:\n", conf_matrix, "\n")
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Recall:", recall, "\n")
+cat("F1 Score:", f1_score, "\n")
+
+# Calculate the confusion matrix
+conf_matrix <- table(test_data$hair_fall, predicted_classes)
+
+install.packages("reshape2")
+library(reshape2)
+# Convert the confusion matrix to a data frame
+conf_df <- as.data.frame.matrix(conf_matrix)
+conf_df$row <- rownames(conf_df)
+
+# Reshape the data for plotting
+conf_df <- melt(conf_df, id.vars = "row")
+colnames(conf_df) <- c("Actual", "Predicted", "Count")
+conf_df$Count <- factor(conf_df$Count)  # Convert to factor
+
+# Plot the confusion matrix
+ggplot(conf_df, aes(x = Actual, y = Predicted, fill = Count)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = Count), vjust = 1) +
+  scale_fill_manual(values = heat.colors(length(unique(conf_df$Count)))) +  # Use discrete color scale
+  labs(x = "Actual", y = "Predicted", title = "Confusion Matrix") +
+  theme_minimal()
+
+install.packages("pROC")
+# Load required library for ROC curve and AUC
+library(pROC)
+# Predict probabilities for each class
+predicted_probabilities <- predict(multinom_model, newdata = test_data, type = "probs")
+
+# Initialize empty lists to store ROC curves and AUC values
+roc_curves <- list()
+auc_values <- numeric()
+
+# Compute ROC curve and AUC for each class
+for (i in 1:ncol(predicted_probabilities)) {
+  # Extract probabilities for the current class
+  class_probs <- predicted_probabilities[, i]
+  
+  # Prepare response and predictor variables for ROC curve computation
+  response <- ifelse(test_data$hair_fall == levels(test_data$hair_fall)[i], 1, 0)
+  
+  # Compute ROC curve
+  roc_curves[[i]] <- roc(response, class_probs)
+  
+  # Compute AUC
+  auc_values[i] <- auc(roc_curves[[i]])
+}
+
+# Plot ROC curves for each class
+plot(roc_curves[[1]], col = "blue", main = "ROC Curve - Multinomial Logistic Regression")
+for (i in 2:length(roc_curves)) {
+  plot(roc_curves[[i]], col = rainbow(length(roc_curves))[i], add = TRUE)
+}
+
+# Compute macro-averaged AUC
+macro_auc <- mean(auc_values)
+cat("Macro-averaged AUC:", macro_auc, "\n")
+
+library(ResourceSelection)
+
+# Assuming 'multinom_model' is your multinomial logistic regression model
+
+# Extract predicted probabilities from the model
+predicted_probabilities <- predict(multinom_model, type = "response")
+
+ # Combine predicted probabilities with the actual outcomes
+predictions <- data.frame(predicted_classes, hair_fall = test_data$hair_fall)
+
+str(predictions)
+# Assuming 'predicted_probabilities' contains the predicted probabilities from the multinomial logistic regression model
+# Ensure that 'predicted_probabilities' is numeric
+predicted_probabilit <- as.numeric(predicted_classes)
+
+# Combine predicted probabilities with the actual outcomes
+prediction <- data.frame(predicted_probabilit, hair_fall = test_data$hair_fall)
+
+# Perform the Hosmer-Lemeshow test
+hoslem_result <- hoslem.test(prediction$hair_fall, as.matrix(prediction[, -ncol(prediction)]))
+
+# Print the result
+print(hoslem_result)
+
+
+
+
+#-----------decision tree
+install.packages("tree")
+library(tree)
+# Fit decision tree model
+tree_model <- tree(hair_fall ~ ., data = train_data)
+
+# Predict on test data
+predicted_classes <- predict(tree_model, newdata = test_data, type = "class")
+
+# Evaluate the model
+conf_matrix <- table(test_data$hair_fall, predicted_classes)
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+precision <- diag(conf_matrix) / rowSums(conf_matrix)
+recall <- diag(conf_matrix) / colSums(conf_matrix)
+f1_score <- 2 * precision * recall / (precision + recall)
+
+# Print evaluation metrics
+cat("Confusion Matrix:\n", conf_matrix, "\n")
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Recall:", recall, "\n")
+cat("F1 Score:", f1_score, "\n")
+
+
+
+
+
+#-----------random forest
+install.packages("randomForest")
+library(randomForest)
+# Fit random forest model
+rf_model <- randomForest(hair_fall ~ ., data = train_data, ntree = 500)
+# Predict on test data
+predicted_classes <- predict(rf_model, newdata = test_data)
+
+# Evaluate the model
+conf_matrix <- table(test_data$hair_fall, predicted_classes)
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+precision <- diag(conf_matrix) / rowSums(conf_matrix)
+recall <- diag(conf_matrix) / colSums(conf_matrix)
+f1_score <- 2 * precision * recall / (precision + recall)
+
+# Print evaluation metrics
+cat("Confusion Matrix:\n", conf_matrix, "\n")
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Recall:", recall, "\n")
+cat("F1 Score:", f1_score, "\n")
+
+
+
+
+#----------svm
+install.packages("e1071")
+library(e1071)
+# Fit SVM model
+svm_model <- svm(hair_fall ~ ., data = train_data, kernel = "radial")
+
+# Predict on test data
+predicted_classes <- predict(svm_model, newdata = test_data)
+
+# Evaluate the model
+conf_matrix <- table(test_data$hair_fall, predicted_classes)
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+precision <- diag(conf_matrix) / rowSums(conf_matrix)
+recall <- diag(conf_matrix) / colSums(conf_matrix)
+f1_score <- 2 * precision * recall / (precision + recall)
+
+# Print evaluation metrics
+cat("Confusion Matrix:\n", conf_matrix, "\n")
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Recall:", recall, "\n")
+cat("F1 Score:", f1_score, "\n")
+
+
+#-----------autoML
+install.packages("h2o")
+# Load required library for AutoML
+library(h2o)
+
+# Start and connect to an H2O cluster
+h2o.init()
+
+# Import train and test data into H2O
+train_h2o <- as.h2o(train_data)  # Assuming 'train_data' is your training dataset
+test_h2o <- as.h2o(test_data)    # Assuming 'test_data' is your testing dataset
+
+# Run AutoML
+aml <- h2o.automl(
+  x = names(train_h2o)[names(train_h2o) != "hair_fall"],  # Predictor variables
+  y = "hair_fall",  # Outcome variable
+  training_frame = train_h2o,  # Training dataset
+  leaderboard_frame = test_h2o,  # Testing dataset
+  max_models = 20,  # Maximum number of models to train
+  seed = 123  # Random seed for reproducibility
+)
+# View the leaderboard of models
+print(aml@leaderboard)
+# Get the best model from AutoML
+best_model <- aml@leader
+print(best_model)
+
+# Shutdown the H2O cluster
+h2o.shutdown()
+
+give this code as a file to upload in github
